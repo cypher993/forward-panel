@@ -3,13 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"net/http"
-	"os"
-	"os/signal"
-	"strings"
-	"syscall"
-	"time"
-
 	"github.com/go-gost/core/auth"
 	"github.com/go-gost/core/logger"
 	"github.com/go-gost/core/service"
@@ -24,6 +17,12 @@ import (
 	"github.com/go-gost/x/registry"
 	xservice "github.com/go-gost/x/service"
 	"github.com/judwhite/go-svc"
+	"net/http"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+	"time"
 )
 
 type program struct {
@@ -75,7 +74,6 @@ func (p *program) Start() error {
 	p.cancel = cancel
 	go p.reload(ctx)
 
-	// 延迟启动配置定时上报器（等待30秒让WebSocket连接稳定）
 	go func() {
 		select {
 		case <-time.After(10 * time.Second):

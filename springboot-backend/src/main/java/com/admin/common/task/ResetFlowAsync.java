@@ -48,7 +48,7 @@ public class ResetFlowAsync {
      * - 不会影响DelayQueueManager的到期任务对status等其他字段的更新
      * - 避免了并发修改导致的数据覆盖问题
      */
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "5 0 0 * * ?")
     public void reset_flow(){
         log.info("开始执行流量重置任务");
         
@@ -78,7 +78,7 @@ public class ResetFlowAsync {
             log.info("到期任务执行完成");
             
         } catch (Exception e) {
-            log.error("定时任务执行失败", e);
+            log.info("定时任务执行失败", e);
         }
     }
     
@@ -126,12 +126,12 @@ public class ResetFlowAsync {
                     log.info("用户[ID: {}, 用户名: {}]流量重置成功，重置日期: 每月{}号", 
                            user.getId(), user.getUser(), user.getFlowResetTime());
                 } else {
-                    log.error("用户[ID: {}, 用户名: {}]流量重置失败", user.getId(), user.getUser());
+                    log.info("用户[ID: {}, 用户名: {}]流量重置失败", user.getId(), user.getUser());
                 }
             }
             
         } catch (Exception e) {
-            log.error("重置用户流量失败", e);
+            log.info("重置用户流量失败", e);
         }
     }
     
@@ -179,13 +179,13 @@ public class ResetFlowAsync {
                     log.info("用户隧道[ID: {}, 用户ID: {}, 隧道ID: {}]流量重置成功，重置日期: 每月{}号", 
                            userTunnel.getId(), userTunnel.getUserId(), userTunnel.getTunnelId(), userTunnel.getFlowResetTime());
                 } else {
-                    log.error("用户隧道[ID: {}, 用户ID: {}, 隧道ID: {}]流量重置失败", 
+                    log.info("用户隧道[ID: {}, 用户ID: {}, 隧道ID: {}]流量重置失败",
                             userTunnel.getId(), userTunnel.getUserId(), userTunnel.getTunnelId());
                 }
             }
             
         } catch (Exception e) {
-            log.error("重置用户隧道流量失败", e);
+            log.info("重置用户隧道流量失败", e);
         }
     }
 

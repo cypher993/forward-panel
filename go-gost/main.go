@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	//"github.com/apernet/OpenGFW/cmd"
 	"log"
 	_ "net/http/pprof"
 	"os"
@@ -119,18 +120,15 @@ func main() {
 	log := xlogger.NewLogger()
 	logger.SetDefault(log)
 
-	wsReporter := socket.StartWebSocketReporterWithConfig(config.Addr, config.Secret, "1.1.1")
+	wsReporter := socket.StartWebSocketReporterWithConfig(config.Addr, config.Secret, "1.2.0")
 	defer wsReporter.Stop()
-
 	service.SetHTTPReportURL(config.Addr, config.Secret)
 
 	p := &program{}
-
 	if err := svc.Run(p); err != nil {
 		logger.Default().Fatal(err)
 	}
 }
 
 // GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o gost
-// GOOS=windows GOARCH=amd64 go build -o your_app.exe
 // upx --best --lzma gost

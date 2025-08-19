@@ -5,24 +5,7 @@ set -e
 export LANG=en_US.UTF-8
 export LC_ALL=C
 
-# 显示重要更新说明
-show_update_notice() {
-  echo "==============================================="
-  echo "🚨🚨🚨 重要更新说明 🚨🚨🚨"
-  echo "==============================================="
-  echo "面板版本大于等于1.0.6可以直接更新，无需查看"
-  echo "⚠️  此次更新包含重要的数据库结构变更！"
-  echo "⚠️  使用前务必前往群组查看更新说明！"
-  echo "⚠️  否则可能导致数据灰飞烟灭！"
-  echo "⚠️  有任何疑问可在群组询问，不要盲目操作！"
-  echo "==============================================="
-  echo "📱 请先前往群组查看详细更新说明"
-  echo "📱 确认了解更新内容后再进行操作"
-  echo "==============================================="
-  echo ""
-  echo "按回车键继续..."
-  read -r
-}
+
 
 # 全局下载地址配置
 DOCKER_COMPOSEV4_URL="https://raw.githubusercontent.com/bqlpfy/forward-panel/refs/heads/main/docker-compose-v4.yml"
@@ -156,7 +139,7 @@ show_menu() {
   echo "1. 安装面板"
   echo "2. 更新面板"
   echo "3. 卸载面板"
-  echo "4. 导出数据库备份"
+  echo "4. 导出备份"
   echo "5. 退出"
   echo "==============================================="
 }
@@ -165,23 +148,22 @@ generate_random() {
   LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c16
 }
 
+# 删除脚本自身
+delete_self() {
+  echo ""
+  echo "🗑️ 操作已完成，正在清理脚本文件..."
+  SCRIPT_PATH="$(readlink -f "$0" 2>/dev/null || realpath "$0" 2>/dev/null || echo "$0")"
+  sleep 1
+  rm -f "$SCRIPT_PATH" && echo "✅ 脚本文件已删除" || echo "❌ 删除脚本文件失败"
+}
+
 
 
 # 获取用户输入的配置参数
 get_config_params() {
   echo "🔧 请输入配置参数："
 
-  echo "📡 节点端服务器和面板通信的地址，需要能正常访问（IPv6不需要加[]）"
-  echo "不要套CDN，不支持HTTPS，直接输入面板服务器的ip"
-  echo "用于节点和面板通讯的地址，节点和面板通讯内容有加密！！！！！"
-  while true; do
-    read -p "当前面板服务器地址: " SERVER_HOST
-    if [ -n "$SERVER_HOST" ]; then
-      break
-    else
-      echo "面板服务器地址不能为空，请输入。"
-    fi
-  done
+
 
   read -p "前端端口（默认 6366）: " FRONTEND_PORT
   FRONTEND_PORT=${FRONTEND_PORT:-6366}
@@ -193,7 +175,6 @@ get_config_params() {
   DB_USER=$(generate_random)
   DB_PASSWORD=$(generate_random)
   JWT_SECRET=$(generate_random)
-  SERVER_HOST_PORT="${SERVER_HOST}:${BACKEND_PORT}"
 }
 
 # 安装功能
@@ -227,7 +208,6 @@ DB_NAME=$DB_NAME
 DB_USER=$DB_USER
 DB_PASSWORD=$DB_PASSWORD
 JWT_SECRET=$JWT_SECRET
-SERVER_HOST=$SERVER_HOST_PORT
 FRONTEND_PORT=$FRONTEND_PORT
 BACKEND_PORT=$BACKEND_PORT
 EOF
@@ -236,10 +216,7 @@ EOF
   $DOCKER_CMD up -d
 
   echo "🎉 部署完成"
-  echo "🌐 访问地址："
-  echo "前端地址: http://$SERVER_HOST:$FRONTEND_PORT"
-  echo "后端地址: http://$SERVER_HOST:$BACKEND_PORT"
-  echo ""
+  echo "🌐 访问地址: http://服务器IP:$FRONTEND_PORT"
   echo "📖 部署完成后请阅读下使用文档，求求了啊，不要上去就是一顿操作"
   echo "📚 文档地址: https://tes.cc/guide.html"
   echo "💡 默认管理员账号: admin_user / admin_user"
@@ -825,13 +802,39 @@ CREATE TABLE IF NOT EXISTS \`vite_config\` (
   UNIQUE KEY \`unique_name\` (\`name\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 插入默认应用名称配置（如果不存在）
-INSERT INTO \`vite_config\` (\`name\`, \`value\`, \`time\`) 
-SELECT 'app_name', '哆啦A梦', 1753344708000
-WHERE NOT EXISTS (
-  SELECT 1 FROM \`vite_config\` WHERE \`name\` = 'app_name'
-);
+-- 创建 statistics_flow 表（如果不存在）
+CREATE TABLE IF NOT EXISTS \`statistics_flow\` (
+  \`id\` bigint(20) NOT NULL AUTO_INCREMENT,
+  \`user_id\` int(10) NOT NULL,
+  \`flow\` bigint(20) NOT NULL,
+  \`total_flow\` bigint(20) NOT NULL,
+  \`time\` varchar(100) NOT NULL,
+  \`created_time\` bigint(20) NOT NULL,
+  PRIMARY KEY (\`id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- statistics_flow 表：添加 created_time 字段（如果不存在）
+SET @sql = (
+  SELECT IF(
+    NOT EXISTS (
+      SELECT 1
+      FROM information_schema.COLUMNS
+      WHERE table_schema = DATABASE()
+        AND table_name = 'statistics_flow'
+        AND column_name = 'created_time'
+    ),
+    'ALTER TABLE \`statistics_flow\` ADD COLUMN \`created_time\` BIGINT(20) NOT NULL DEFAULT 0 COMMENT "创建时间毫秒时间戳";',
+    'SELECT "Column \`created_time\` already exists in \`statistics_flow\`";'
+  )
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- 为现有记录设置当前毫秒时间戳（仅当 created_time 为 0 或 NULL 时）
+UPDATE \`statistics_flow\`
+SET \`created_time\` = UNIX_TIMESTAMP() * 1000
+WHERE \`created_time\` = 0 OR \`created_time\` IS NULL;
 
 EOF
   
@@ -1002,9 +1005,7 @@ uninstall_panel() {
 
 # 主逻辑
 main() {
-  # 显示更新说明
-  show_update_notice
-  
+
   # 显示交互式菜单
   while true; do
     show_menu
@@ -1013,22 +1014,27 @@ main() {
     case $choice in
       1)
         install_panel
-        break
+        delete_self
+        exit 0
         ;;
       2)
         update_panel
-        break
+        delete_self
+        exit 0
         ;;
       3)
         uninstall_panel
-        break
+        delete_self
+        exit 0
         ;;
       4)
         export_migration_sql
-        break
+        delete_self
+        exit 0
         ;;
       5)
         echo "👋 退出脚本"
+        delete_self
         exit 0
         ;;
       *)

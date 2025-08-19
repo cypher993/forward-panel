@@ -1,6 +1,6 @@
 #!/bin/bash
 # 下载地址
-DOWNLOAD_URL="https://raw.githubusercontent.com/bqlpfy/forward-panel/refs/heads/main/go-gost/gost"
+DOWNLOAD_URL="https://github.com/bqlpfy/forward-panel/releases/download/gost-latest/gost"
 INSTALL_DIR="/etc/gost"
 
 # 显示菜单
@@ -14,6 +14,15 @@ show_menu() {
   echo "3. 卸载"
   echo "4. 退出"
   echo "==============================================="
+}
+
+# 删除脚本自身
+delete_self() {
+  echo ""
+  echo "🗑️ 操作已完成，正在清理脚本文件..."
+  SCRIPT_PATH="$(readlink -f "$0" 2>/dev/null || realpath "$0" 2>/dev/null || echo "$0")"
+  sleep 1
+  rm -f "$SCRIPT_PATH" && echo "✅ 脚本文件已删除" || echo "❌ 删除脚本文件失败"
 }
 
 # 检查并安装 tcpkill
@@ -84,6 +93,7 @@ check_and_install_tcpkill() {
   return 0
 }
 
+
 # 获取用户输入的配置参数
 get_config_params() {
   if [[ -z "$SERVER_ADDR" || -z "$SECRET" ]]; then
@@ -132,6 +142,8 @@ install_gost() {
   
     # 检查并安装 tcpkill
   check_and_install_tcpkill
+  
+
   mkdir -p "$INSTALL_DIR"
 
   # 停止并禁用已有服务
@@ -236,6 +248,7 @@ update_gost() {
   
   # 检查并安装 tcpkill
   check_and_install_tcpkill
+  
   # 先下载新版本
   echo "⬇️ 下载最新版本..."
   curl -L "$DOWNLOAD_URL" -o "$INSTALL_DIR/gost.new"
@@ -304,33 +317,43 @@ main() {
   # 如果提供了命令行参数，直接执行安装
   if [[ -n "$SERVER_ADDR" && -n "$SECRET" ]]; then
     install_gost
+    delete_self
     exit 0
   fi
 
   # 显示交互式菜单
   while true; do
     show_menu
-    read -p "请输入选项 (1-4): " choice
+    read -p "请输入选项 (1-5): " choice
     
     case $choice in
       1)
         install_gost
-        break
+        delete_self
+        exit 0
         ;;
       2)
         update_gost
-        break
+        delete_self
+        exit 0
         ;;
       3)
         uninstall_gost
-        break
+        delete_self
+        exit 0
         ;;
       4)
+        block_protocol
+        delete_self
+        exit 0
+        ;;
+      5)
         echo "👋 退出脚本"
+        delete_self
         exit 0
         ;;
       *)
-        echo "❌ 无效选项，请输入 1-4"
+        echo "❌ 无效选项，请输入 1-5"
         echo ""
         ;;
     esac
