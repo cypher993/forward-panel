@@ -1,9 +1,9 @@
 # 使用指南
 
-哆啦A梦是一个基于 go-gost 的现代化转发面板，提供了直观的 Web 界面来管理网络流量转发。
+flux-panel是一个基于 go-gost 的现代化转发面板，提供了直观的 Web 界面来管理网络流量转发。
 
 ::: tip 需要帮助？
-📱 [加入 Telegram 群组](https://t.me/+wdVDni1fdyI0YzE1) | 🐛 [GitHub Issues](https://github.com/bqlpfy/forward-panel/issues) | 🤝 [参与贡献](https://github.com/bqlpfy/forward-panel/pulls)
+📱 [加入 Telegram 群组](https://t.me/+wdVDni1fdyI0YzE1) | 🐛 [GitHub Issues](https://github.com/bqlpfy/flux-panel/issues) | 🤝 [参与贡献](https://github.com/bqlpfy/flux-panel/pulls)
 :::
 
 ## 项目介绍
@@ -20,7 +20,7 @@
 
 ### 技术架构
 
-- **前端**: Vue.js 2 + Element UI
+- **前端**: vite + next UI
 - **后端**: Spring Boot + MySQL
 - **转发引擎**: go-gost
 - **部署方式**: Docker Compose
@@ -97,7 +97,7 @@ curl -L https://your-panel-server:6365/agent/install | bash -s -- --server=your-
 ```
 
 ::: warning 安装须知
-- 安装或者更新时如果 `/etc/gost/` 下存在 `gost.json` 和 `config.json`，安装命令会跳过生成，使用当前存在的配置
+- 安装或者更新时如果 `/etc/gost/` 下存在 `gost.json`，安装命令会跳过生成，使用当前存在的配置
 - gost执行文件会强制更新
 :::
 
@@ -258,6 +258,18 @@ curl -L https://your-panel-server:6365/agent/install | bash -s -- --server=your-
 
 4. 点击 **"确定"** 保存限速规则
 
+## 第九步：API流量信息查询（可选）
+- 本项目为sub-store提供流量查询API以便查询流量日期信息
+- 格式如下  
+```
+http(s)://<面板连接地址>/api/v1/open_api/sub_store?user=<用户名>&pwd=<密码>&tunnel=<隧道ID>
+```
+- 修改完成后填入sub-store订阅流量信息栏即可实现查询
+**注意**
+- “&tunnel=隧道id”为可选项，若不填写则返回全部流量查询信息
+- 管理员无此查询权限
+- 请妥善保存上述信息，避免因用户信息泄漏而造成的损失
+
 ## 获取帮助
 
 ### 社区支持
@@ -270,8 +282,8 @@ curl -L https://your-panel-server:6365/agent/install | bash -s -- --server=your-
    - 与其他用户交流经验
 
 2. **🐛 GitHub Issues**
-   - [报告问题](https://github.com/bqlpfy/forward-panel/issues/new)
-   - 查看 [已知问题](https://github.com/bqlpfy/forward-panel/issues)
+   - [报告问题](https://github.com/bqlpfy/flux-panel/issues/new)
+   - 查看 [已知问题](https://github.com/bqlpfy/flux-panel/issues)
    - 提交功能建议
 
 3. **📖 文档资源**

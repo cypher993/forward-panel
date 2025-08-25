@@ -1,7 +1,14 @@
 #!/bin/bash
 # 下载地址
-DOWNLOAD_URL="https://github.com/bqlpfy/forward-panel/releases/download/gost-latest/gost"
+DOWNLOAD_URL="https://github.com/bqlpfy/flux-panel/releases/download/gost-latest/gost"
 INSTALL_DIR="/etc/gost"
+COUNTRY=$(curl -s https://ipinfo.io/country)
+if [ "$COUNTRY" = "CN" ]; then
+    # 拼接 URL
+    DOWNLOAD_URL="https://ghfast.top/${DOWNLOAD_URL}"
+fi
+
+
 
 # 显示菜单
 show_menu() {
@@ -127,19 +134,7 @@ done
 install_gost() {
   echo "🚀 开始安装 GOST..."
   get_config_params
-  
-  # 询问是否有加速下载地址
-  echo ""
-  echo "📥 检查下载地址..."
-  echo "加速下载地址需提供完整的地址，浏览器打开就能直接下载的那种！！！！！"
-  read -p "是否有加速下载地址？(留空使用默认地址): " custom_url
-  if [[ -n "$custom_url" ]]; then
-    DOWNLOAD_URL="$custom_url"
-    echo "✅ 使用自定义下载地址: $DOWNLOAD_URL"
-  else
-    echo "✅ 使用默认下载地址: $DOWNLOAD_URL"
-  fi
-  
+
     # 检查并安装 tcpkill
   check_and_install_tcpkill
   
@@ -235,16 +230,7 @@ update_gost() {
     return 1
   fi
   
-  # 询问是否有加速下载地址
-  echo ""
-  echo "📥 检查下载地址..."
-  read -p "是否有加速下载地址？(留空使用默认地址): " custom_url
-  if [[ -n "$custom_url" ]]; then
-    DOWNLOAD_URL="$custom_url"
-    echo "✅ 使用自定义下载地址: $DOWNLOAD_URL"
-  else
-    echo "✅ 使用默认下载地址: $DOWNLOAD_URL"
-  fi
+  echo "📥 使用下载地址: $DOWNLOAD_URL"
   
   # 检查并安装 tcpkill
   check_and_install_tcpkill

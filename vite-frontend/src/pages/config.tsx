@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@heroui/button";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Input } from "@heroui/input";
@@ -9,7 +10,7 @@ import { Select, SelectItem } from "@heroui/select";
 import toast from 'react-hot-toast';
 import { updateConfigs } from '@/api';
 import { SettingsIcon } from '@/components/icons';
-import AdminLayout from "@/layouts/admin";
+
 import { isAdmin } from '@/utils/auth';
 import { getCachedConfigs, clearConfigCache, updateSiteConfig } from '@/config/site';
 
@@ -104,7 +105,7 @@ const CONFIG_ITEMS: ConfigItem[] = [
 const getInitialConfigs = (): Record<string, string> => {
   if (typeof window === 'undefined') return {};
   
-  const configKeys = ['app_name', 'captcha_enabled', 'captcha_type'];
+  const configKeys = ['app_name', 'captcha_enabled', 'captcha_type', 'ip'];
   const initialConfigs: Record<string, string> = {};
   
   try {
@@ -121,6 +122,7 @@ const getInitialConfigs = (): Record<string, string> => {
 };
 
 export default function ConfigPage() {
+  const navigate = useNavigate();
   const initialConfigs = getInitialConfigs();
   const [configs, setConfigs] = useState<Record<string, string>>(initialConfigs);
   const [loading, setLoading] = useState(Object.keys(initialConfigs).length === 0); // 如果有缓存数据，不显示loading
@@ -132,10 +134,10 @@ export default function ConfigPage() {
   useEffect(() => {
     if (!isAdmin()) {
       toast.error('权限不足，只有管理员可以访问此页面');
-      window.location.href = '/dashboard';
+      navigate('/dashboard', { replace: true });
       return;
     }
-  }, []);
+  }, [navigate]);
 
   // 加载配置数据（优先从缓存）
   const loadConfigs = async (currentConfigs?: Record<string, string>) => {
@@ -323,16 +325,16 @@ export default function ConfigPage() {
 
   if (loading) {
     return (
-      <AdminLayout>
+      
         <div className="flex items-center justify-center min-h-[400px]">
           <Spinner size="lg" label="加载配置中..." />
         </div>
-      </AdminLayout>
+      
     );
   }
 
   return (
-    <AdminLayout>
+    
       <div className="p-6 max-w-4xl mx-auto">
         {/* 页面标题 */}
         <div className="flex items-center gap-3 mb-6">
@@ -422,6 +424,6 @@ export default function ConfigPage() {
           </Card>
         )}
       </div>
-    </AdminLayout>
+    
   );
 } 
